@@ -7,6 +7,15 @@
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
+  var cdD = document.getElementById('cd-days');
+  if (cdD) {
+    var cdH = document.getElementById('cd-hours'),
+        cdM = document.getElementById('cd-mins'),
+        cdS = document.getElementById('cd-secs');
+    tick();
+    setInterval(tick, 1000);
+  }
+
   function tick() {
     var now = Date.now();
     var diff = Math.max(0, TARGET_UTC - now);
@@ -15,12 +24,10 @@
     var m = Math.floor(diff / 60000) % 60;
     var s = Math.floor(diff / 1000) % 60;
     document.getElementById('cd-days').textContent = pad(d);
-    document.getElementById('cd-hours').textContent = pad(h);
-    document.getElementById('cd-mins').textContent = pad(m);
-    document.getElementById('cd-secs').textContent = pad(s);
+    if (cdH) cdH.textContent = pad(h);
+    if (cdM) cdM.textContent = pad(m);
+    if (cdS) cdS.textContent = pad(s);
   }
-  tick();
-  setInterval(tick, 1000);
 
   /* ---------- Vault signup (MailerLite) ---------- */
   var form = document.getElementById('vault-form');
@@ -84,5 +91,16 @@
     setTimeout(function () {
       if (window[cb]) { cleanup(); showError('The request timed out. Please try again.'); submit.disabled = false; submit.textContent = 'Subscribe'; }
     }, 15000);
+  });
+})();
+
+/* Mobile nav toggle */
+(function () {
+  var btn = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  if (!btn || !links) return;
+  btn.addEventListener('click', function () {
+    var open = links.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 })();
