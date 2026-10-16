@@ -37,8 +37,9 @@
   var wrap = document.getElementById('vault-form-wrap');
   var success = document.getElementById('vault-success');
 
-  function showError(msg) { error.textContent = msg; }
+  function showError(msg) { if (error) error.textContent = msg; }
 
+  if (form && email && submit) {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     showError('');
@@ -92,6 +93,7 @@
       if (window[cb]) { cleanup(); showError('The request timed out. Please try again.'); submit.disabled = false; submit.textContent = 'Subscribe'; }
     }, 15000);
   });
+  } /* end if (form && email && submit) */
 })();
 
 /* Mobile nav toggle */
@@ -102,5 +104,57 @@
   btn.addEventListener('click', function () {
     var open = links.classList.toggle('open');
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+
+/* Carousels: auto-slide with dot indicators + touch swipe (no arrows, like the original) */
+(function () {
+  var roots = document.querySelectorAll('.carousel');
+  if (!roots.length) return;
+
+  roots.forEach(function (root) {
+    var track = root.querySelector('.carousel-track');
+    var slides = root.querySelectorAll('.carousel-slide');
+    var dotsWrap = root.querySelector('.carousel-dots');
+    var n = slides.length, idx = 0, timer = null;
+    if (!n || !track || !dotsWrap) return;
+
+    for (var i = 0; i < n; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      (function (k) { b.addEventListener('click', function () { go(k); restart(); }); })(i);
+      dotsWrap.appendChild(b);
+    }
+    var dots = dotsWrap.querySelectorAll('button');
+
+    function go(k) {
+      idx = (k + n) % n;
+      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+      for (var j = 0; j < n; j++) dots[j].classList.toggle('active', j === idx);
+    }
+    function restart() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(function () { go(idx + 1); }, 5000);
+    }
+    root.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+    root.addEventListener('mouseleave', restart);
+
+    /* touch swipe */
+    var startX = null;
+    root.addEventListener('touchstart', function (e) {
+      startX = e.touches[0].clientX;
+      if (timer) clearInterval(timer);
+    }, { passive: true });
+    root.addEventListener('touchend', function (e) {
+      if (startX === null) return;
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+      startX = null;
+      restart();
+    }, { passive: true });
+
+    go(0);
+    restart();
   });
 })();
